@@ -18,6 +18,35 @@ function shouldEnableRedis(): boolean {
   );
 }
 
+// Helper function to parse Redis configuration
+function getRedisConfig() {
+  if (process.env.REDIS_URL) {
+    try {
+      const url = new URL(process.env.REDIS_URL);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port) || 6379,
+        password: url.password || undefined,
+        username: url.username || undefined,
+      };
+    } catch (error) {
+      console.error('❌ Failed to parse REDIS_URL:', error.message);
+      return null;
+    }
+  }
+
+  if (process.env.REDIS_HOST) {
+    return {
+      host: process.env.REDIS_HOST,
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD || undefined,
+      username: process.env.REDIS_USER || undefined,
+    };
+  }
+
+  return null;
+}
+
 // Helper function to get MongoDB URI
 function getMongoDbUri(): string {
   // Try multiple environment variable names that Railway might use
@@ -57,18 +86,29 @@ function getMongoDbUri(): string {
     //   introspection: true,
     // }),
     // Conditionally import BullModule only if Redis is available and configured
-    ...(shouldEnableRedis() ? [
-      BullModule.forRoot({
-        connection: {
-          host: process.env.REDIS_HOST || process.env.REDIS_URL?.split('://')[1]?.split(':')[0] || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || process.env.REDIS_URL?.split(':')[2] || '6379'),
-          // Add connection timeout and retry settings
-          connectTimeout: 10000,
-          retryDelayOnFailover: 100,
-          maxRetriesPerRequest: 3,
-        },
-      })
-    ] : []),
+    ...(shouldEnableRedis() ? (() => {
+      const redisConfig = getRedisConfig();
+      if (redisConfig) {
+        console.log('🔄 Redis config:', { 
+          host: redisConfig.host, 
+          port: redisConfig.port,
+          hasPassword: !!redisConfig.password 
+        });
+        return [
+          BullModule.forRoot({
+            connection: {
+              ...redisConfig,
+              connectTimeout: 10000,
+              retryDelayOnFailover: 100,
+              maxRetriesPerRequest: 3,
+            },
+          })
+        ];
+      } else {
+        console.log('⚠️ Redis configuration invalid, skipping Redis setup');
+        return [];
+      }
+    })() : []),
     StreamsModule,
     ZkModule,
     MockKotaniModule,

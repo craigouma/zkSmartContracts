@@ -15,8 +15,8 @@ The error `connect ECONNREFUSED ::1:27017` means it's trying to connect to local
 ```bash
 NODE_ENV=production
 PORT=3000
-MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
-REDIS_URL=redis://default:VVZFjOnafhfIzblGCNTYlKrISoMyQpMz@redis.railway.internal:6379
+MONGODB_URI=<YOUR_MONGODB_ATLAS_CONNECTION_STRING>
+REDIS_URL=<YOUR_RAILWAY_REDIS_URL>
 ```
 
 ### 2. Alternative Database Variable Names
@@ -24,40 +24,70 @@ REDIS_URL=redis://default:VVZFjOnafhfIzblGCNTYlKrISoMyQpMz@redis.railway.interna
 If `MONGODB_URI` doesn't work, Railway might expect different names. Try adding ALL of these:
 
 ```bash
-MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
-MONGO_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
-DATABASE_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+MONGODB_URI=<YOUR_MONGODB_ATLAS_CONNECTION_STRING>
+MONGO_URL=<YOUR_MONGODB_ATLAS_CONNECTION_STRING>
+DATABASE_URL=<YOUR_MONGODB_ATLAS_CONNECTION_STRING>
 ```
 
-### 3. Validate Environment Variables
+### 3. Current Issues Analysis
 
-Run this locally to test your environment:
+Based on your error logs, there are TWO problems:
 
+#### Problem 1: Redis Port Parsing Error
+```
+RangeError [ERR_SOCKET_BAD_PORT]: Port should be >= 0 and < 65536. Received type number (NaN).
+```
+This means the Redis URL parsing is failing.
+
+#### Problem 2: MongoDB Atlas IP Whitelist
+```
+MongooseServerSelectionError: Could not connect to any servers in your MongoDB Atlas cluster
+```
+This means Railway's IP is not allowed in your MongoDB Atlas.
+
+## 🔧 FIXES NEEDED
+
+### Fix 1: MongoDB Atlas IP Whitelist
+1. Go to MongoDB Atlas Dashboard
+2. Security → Network Access
+3. Click "Add IP Address"
+4. Add `0.0.0.0/0` (Allow access from anywhere)
+5. Save changes
+
+### Fix 2: Redis URL Format
+In Railway, set ONLY this Redis variable:
 ```bash
-node validate-env.js
+REDIS_URL=redis://default:YOUR_REDIS_PASSWORD@redis.railway.internal:6379
 ```
 
-Expected output:
+Remove these variables if you have them:
+- REDIS_HOST
+- REDIS_PORT
+- REDIS_PASSWORD
+- REDISUSER
+
+### Fix 3: MongoDB Connection String Format
+Make sure your MongoDB URI is exactly:
+```bash
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/DATABASE?retryWrites=true&w=majority
 ```
-🔍 Environment Variables Validation
 
-📋 Required Variables:
-  ✅ NODE_ENV: production
-  ✅ PORT: 3000
+## 🎯 What Should Happen
 
-🗄️  Database Variables (need at least one):
-  ✅ MONGODB_URI: Atlas URI
-  
-🔄 Redis Variables (optional):
-  ✅ REDIS_URL: SET
+After these fixes:
 
-📊 Summary:
-  Environment: production
-  Database: Configured
-  Redis: Enabled
+1. **Railway redeploys automatically**
+2. **Logs show**: `🔍 MongoDB URI source: { MONGODB_URI: true, usingUri: 'Atlas' }`
+3. **No Redis port errors**
+4. **Health check works**: `https://your-app.railway.app/health`
 
-🎉 All required environment variables are set!
-```
+## 🆘 Still Not Working?
+
+1. **Check Railway deployment logs** for the debug line: `🔍 MongoDB URI source:`
+2. **Verify MongoDB Atlas** allows `0.0.0.0/0` access
+3. **Test Redis connection** by temporarily disabling Redis (remove REDIS_URL)
+
+The issue is Railway environment variable configuration combined with MongoDB Atlas network restrictions.
 
 ## 🔍 Troubleshooting Steps
 
@@ -91,16 +121,16 @@ Ensure your MongoDB Atlas allows Railway connections:
 NODE_ENV=production
 PORT=3000
 
-# Database (try all three)
-MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
-MONGO_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
-DATABASE_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+# Database (use your actual MongoDB Atlas URI)
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
 
-# Redis
-REDIS_URL=redis://default:VVZFjOnafhfIzblGCNTYlKrISoMyQpMz@redis.railway.internal:6379
+# Redis (use your actual Railway Redis credentials)
+REDIS_URL=redis://default:password@redis.railway.internal:6379
 REDIS_HOST=redis.railway.internal
 REDIS_PORT=6379
-REDIS_PASSWORD=VVZFjOnafhfIzblGCNTYlKrISoMyQpMz
+REDIS_PASSWORD=your_redis_password
 REDISUSER=default
 ```
 
@@ -125,7 +155,7 @@ After setting variables correctly:
 If you're still getting the `::1:27017` error:
 
 1. **Share Railway deployment logs** with me
-2. **Screenshot** of your Railway environment variables
+2. **Screenshot** of your Railway environment variables (hide the values!)
 3. **Test** the validation script: `node validate-env.js`
 
 The issue is 100% that Railway is not reading your `MONGODB_URI` environment variable correctly.
@@ -142,13 +172,13 @@ PORT=3000
 
 ### Redis Configuration (From Your Railway Redis Service)
 ```bash
-# Primary Redis URL (use this one)
-REDIS_URL=redis://default:VVZFjOnafhfIzblGCNTYlKrISoMyQpMz@redis.railway.internal:6379
+# Primary Redis URL (use your actual Railway Redis URL)
+REDIS_URL=redis://default:YOUR_REDIS_PASSWORD@redis.railway.internal:6379
 
 # Alternative format (backup)
 REDIS_HOST=redis.railway.internal
 REDIS_PORT=6379
-REDIS_PASSWORD=VVZFjOnafhfIzblGCNTYlKrISoMyQpMz
+REDIS_PASSWORD=YOUR_REDIS_PASSWORD
 REDISUSER=default
 ```
 
@@ -171,9 +201,9 @@ ETHEREUM_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
 
 ### 2. Connect Redis Service
 ✅ **Already Done!** Your Redis service is configured with:
-- **Internal URL**: `redis.railway.internal:6379`
+- **Internal URL**: `redis.railway.internal:6379`  
 - **Public URL**: `interchange.proxy.rlwy.net:28333`
-- **Password**: `VVZFjOnafhfIzblGCNTYlKrISoMyQpMz`
+- **Password**: `[Use your actual Redis password from Railway dashboard]`
 
 ### 3. Verify Deployment
 After setting the environment variables:
