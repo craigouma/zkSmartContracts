@@ -48,14 +48,14 @@ Frontend (Vercel) → Backend (Railway) → Database (MongoDB Atlas) → Blockch
    ETHEREUM_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
    ```
 
-3. **Railway.json Configuration**:
+3. **Railway.json Configuration** (Already included in repo):
    ```json
    {
      "build": {
-       "builder": "NIXPACKS"
+       "builder": "DOCKERFILE",
+       "dockerfilePath": "Dockerfile"
      },
      "deploy": {
-       "startCommand": "npm run start:prod --workspace=apps/backend",
        "restartPolicyType": "ON_FAILURE",
        "restartPolicyMaxRetries": 10
      }
