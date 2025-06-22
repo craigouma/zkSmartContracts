@@ -39,7 +39,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=4000
-      - MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/?retryWrites=true&w=majority&appName=zksalary
+      - MONGODB_URI=mongodb://localhost:27017/zksalarystream
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - ETHEREUM_RPC_URL=http://hardhat:8545

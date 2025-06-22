@@ -287,7 +287,7 @@ To replace the mock service with real Kotani Pay integration:
 #### Backend (.env.local)
 ```bash
 # Database (MongoDB Atlas - Already configured)
-MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/
+MONGODB_URI=your_mongodb_connection_string_here
 
 # Redis for background jobs
 REDIS_HOST=localhost

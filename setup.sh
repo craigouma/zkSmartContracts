@@ -39,7 +39,7 @@ echo "🔧 Creating environment configuration files..."
 # Backend environment file
 cat > apps/backend/.env.local << EOF
 # Database
-MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/?retryWrites=true&w=majority&appName=zksalary
+MONGODB_URI=your_mongodb_connection_string_here
 
 # Redis
 REDIS_HOST=localhost
@@ -64,6 +64,10 @@ VITE_BACKEND_URL=http://localhost:4000
 EOF
 
 echo "✅ Environment files created"
+echo ""
+echo "⚠️  IMPORTANT: Please update apps/backend/.env.local with your MongoDB connection string!"
+echo "   Replace 'your_mongodb_connection_string_here' with your actual MongoDB URI"
+echo ""
 
 # Check Redis
 echo "🔍 Checking Redis availability..."

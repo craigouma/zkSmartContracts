@@ -14,9 +14,9 @@ import { MockKotaniModule } from './mock-kotani/mock-kotani.module';
       isGlobal: true,
       envFilePath: '.env.local',
     }),
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI || 
-      'mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/?retryWrites=true&w=majority&appName=zksalary'
+        MongooseModule.forRoot(
+      process.env.MONGODB_URI ||
+        'mongodb://localhost:27017/zksalarystream'
     ),
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,
