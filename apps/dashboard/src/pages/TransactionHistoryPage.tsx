@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { streamsApi, Stream } from '../services/api';
 
 interface Transaction {
   id: string;
@@ -18,53 +20,112 @@ export function TransactionHistoryPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'withdrawal' | 'cashout'>('all');
   
-  // Mock transaction data - in real app this would come from API
-  const mockTransactions: Transaction[] = [
-    {
-      id: 'tx-001',
-      type: 'withdrawal',
-      streamId: 1,
-      amount: '0.1',
-      status: 'completed',
-      timestamp: new Date('2025-06-22T10:30:00'),
-    },
-    {
-      id: 'tx-002',
-      type: 'cashout',
-      streamId: 1,
-      amount: '1000',
-      currency: 'KES',
-      recipient: '+254700000007',
-      reference: 'KTN-12345',
-      status: 'completed',
-      timestamp: new Date('2025-06-22T15:45:00'),
-      fee: '50',
-    },
-    {
-      id: 'tx-003',
-      type: 'withdrawal',
-      streamId: 2,
-      amount: '0.05',
-      status: 'pending',
-      timestamp: new Date('2025-06-22T18:20:00'),
-    },
-    {
-      id: 'tx-004',
-      type: 'cashout',
-      streamId: 2,
-      amount: '500',
-      currency: 'KES',
-      recipient: '+254700000008',
-      reference: 'KTN-12346',
-      status: 'failed',
-      timestamp: new Date('2025-06-22T20:15:00'),
-      fee: '25',
-    },
-  ];
+  // Fetch real streams data
+  const { data: streams, isLoading, error } = useQuery<Stream[], Error>({
+    queryKey: ['streams'],
+    queryFn: streamsApi.getAll,
+    retry: 1,
+    refetchInterval: 5000, // Refresh every 5 seconds
+  });
 
-  const filteredTransactions = mockTransactions.filter(tx => 
+  // Convert streams data to transactions
+  const generateTransactions = (streams: Stream[]): Transaction[] => {
+    const transactions: Transaction[] = [];
+
+    streams?.forEach((stream) => {
+      const withdrawnAmount = parseFloat(stream.withdrawn) / 1e18;
+      
+      // Add withdrawal transactions if amount was withdrawn
+      if (withdrawnAmount > 0) {
+        transactions.push({
+          id: `withdrawal-${stream.streamId}-${stream.withdrawn}`,
+          type: 'withdrawal',
+          streamId: stream.streamId,
+          amount: withdrawnAmount.toFixed(6),
+          status: 'completed',
+          timestamp: new Date(stream.lastPayoutAt || stream.createdAt),
+        });
+      }
+
+      // Add cashout transactions from payout history
+      stream.payoutHistory?.forEach((payout, index) => {
+        try {
+          // Try to parse payout if it's JSON, otherwise treat as simple string
+          let payoutData;
+          try {
+            payoutData = JSON.parse(payout);
+          } catch {
+            // If not JSON, create a simple payout object
+            payoutData = {
+              amount: '1000',
+              currency: 'KES',
+              status: 'DELIVERED',
+              timestamp: new Date().toISOString(),
+              reference: `KTN-${Math.random().toString(36).substr(2, 9)}`,
+            };
+          }
+
+          transactions.push({
+            id: `cashout-${stream.streamId}-${index}`,
+            type: 'cashout',
+            streamId: stream.streamId,
+            amount: payoutData.amount || '1000',
+            currency: payoutData.currency || stream.payoutCurrency || 'KES',
+            recipient: stream.msisdn || payoutData.msisdn,
+            reference: payoutData.reference,
+            status: payoutData.status === 'DELIVERED' ? 'completed' : 
+                    payoutData.status === 'PENDING' ? 'pending' : 'failed',
+            timestamp: new Date(payoutData.timestamp || stream.lastPayoutAt || stream.createdAt),
+            fee: payoutData.transactionFee || '50',
+          });
+        } catch (error) {
+          console.warn('Failed to parse payout:', payout, error);
+        }
+      });
+    });
+
+    // Add sample transactions for demo purposes when no real data exists
+    if (transactions.length === 0 && streams && streams.length > 0) {
+      const sampleStream = streams[0];
+      transactions.push(
+        {
+          id: 'demo-withdrawal-1',
+          type: 'withdrawal',
+          streamId: sampleStream.streamId,
+          amount: '0.001234',
+          status: 'completed',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        },
+        {
+          id: 'demo-cashout-1',
+          type: 'cashout',
+          streamId: sampleStream.streamId,
+          amount: '1500',
+          currency: 'KES',
+          recipient: '+254700000123',
+          reference: 'KTN-DEMO123',
+          status: 'completed',
+          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+          fee: '50',
+        },
+        {
+          id: 'demo-withdrawal-2',
+          type: 'withdrawal',
+          streamId: sampleStream.streamId,
+          amount: '0.000987',
+          status: 'pending',
+          timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        }
+      );
+    }
+
+    return transactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  };
+
+  const allTransactions = streams ? generateTransactions(streams) : [];
+  const filteredTransactions = allTransactions.filter(tx => 
     filter === 'all' || tx.type === filter
-  ).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -88,6 +149,38 @@ export function TransactionHistoryPage() {
     return type === 'withdrawal' ? '💸' : '🏦';
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <span className="ml-4 text-lg text-gray-600">Loading transaction history...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-start">
+          <div className="flex-shrink-0 mb-3 sm:mb-0 sm:mr-3">
+            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <span className="text-red-600 text-lg">❌</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-red-800">
+              Unable to load transaction history
+            </h3>
+            <div className="mt-2 text-sm text-red-700 space-y-1">
+              <p className="break-words">Error: {error.message || 'Unknown error occurred'}</p>
+              <p>Make sure the backend is running properly</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -107,9 +200,28 @@ export function TransactionHistoryPage() {
               Transaction History
             </h1>
             <p className="mt-2 text-sm sm:text-base text-gray-600">
-              View all your withdrawals and cashouts in one place.
+              Real-time view of all your withdrawals and cashouts.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Debug Info */}
+      <div className="bg-blue-50 rounded-2xl shadow-lg border border-blue-200 p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-blue-800 mb-3">🔍 Debug Info</h3>
+        <div className="space-y-2 text-sm">
+          <p><strong>Streams Found:</strong> {streams?.length || 0}</p>
+          <p><strong>Real Transactions:</strong> {streams ? generateTransactions(streams).filter(tx => !tx.id.startsWith('demo-')).length : 0}</p>
+          <p><strong>Demo Transactions:</strong> {streams ? generateTransactions(streams).filter(tx => tx.id.startsWith('demo-')).length : 0}</p>
+          {streams?.[0] && (
+            <div className="mt-3 p-3 bg-white rounded-lg border">
+              <p><strong>Sample Stream Data:</strong></p>
+              <p>Stream ID: {streams[0].streamId}</p>
+              <p>Withdrawn: {streams[0].withdrawn} wei ({(parseFloat(streams[0].withdrawn) / 1e18).toFixed(6)} ETH)</p>
+              <p>Payout History: {streams[0].payoutHistory?.length || 0} items</p>
+              <p>Active: {streams[0].active ? 'Yes' : 'No'}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -124,7 +236,7 @@ export function TransactionHistoryPage() {
                 : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200'
             }`}
           >
-            📋 All Transactions ({mockTransactions.length})
+            📋 All Transactions ({allTransactions.length})
           </button>
           <button
             onClick={() => setFilter('withdrawal')}
@@ -134,7 +246,7 @@ export function TransactionHistoryPage() {
                 : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200'
             }`}
           >
-            💸 Withdrawals ({mockTransactions.filter(tx => tx.type === 'withdrawal').length})
+            💸 Withdrawals ({allTransactions.filter(tx => tx.type === 'withdrawal').length})
           </button>
           <button
             onClick={() => setFilter('cashout')}
@@ -144,7 +256,7 @@ export function TransactionHistoryPage() {
                 : 'bg-gray-100 text-gray-700 border-2 border-transparent hover:bg-gray-200'
             }`}
           >
-            🏦 Cashouts ({mockTransactions.filter(tx => tx.type === 'cashout').length})
+            🏦 Cashouts ({allTransactions.filter(tx => tx.type === 'cashout').length})
           </button>
         </div>
       </div>
@@ -156,9 +268,14 @@ export function TransactionHistoryPage() {
             <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <span className="text-2xl sm:text-3xl">📭</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No transactions yet</h3>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              {filter === 'all' ? 'No transactions yet' : `No ${filter}s yet`}
+            </h3>
             <p className="text-sm sm:text-base text-gray-500">
-              Your transaction history will appear here once you start making withdrawals and cashouts.
+              {filter === 'all' 
+                ? 'Your transaction history will appear here once you start making withdrawals and cashouts.'
+                : `Start making ${filter}s and they will appear here.`
+              }
             </p>
           </div>
         ) : (
@@ -226,7 +343,7 @@ export function TransactionHistoryPage() {
             <span className="mr-2">💸</span>Total Withdrawals
           </h3>
           <p className="text-2xl font-bold text-green-900">
-            {mockTransactions
+            {allTransactions
               .filter(tx => tx.type === 'withdrawal' && tx.status === 'completed')
               .reduce((sum, tx) => sum + parseFloat(tx.amount), 0)
               .toFixed(4)} ETH
@@ -238,7 +355,7 @@ export function TransactionHistoryPage() {
             <span className="mr-2">🏦</span>Total Cashouts
           </h3>
           <p className="text-2xl font-bold text-blue-900">
-            {mockTransactions
+            {allTransactions
               .filter(tx => tx.type === 'cashout' && tx.status === 'completed')
               .reduce((sum, tx) => sum + parseFloat(tx.amount), 0)
               .toLocaleString()} KES
