@@ -1,0 +1,31 @@
+{
+  "name": "zksalarystream-mock",
+  "version": "1.0.0",
+  "description": "Privacy-preserving salary streaming with mock Kotani Pay integration",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "contracts",
+    "circuit"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "dev:dashboard": "npm run dev --workspace=apps/dashboard",
+    "dev:hardhat": "npm run node --workspace=contracts",
+    "test": "npm run test --workspaces",
+    "test:contracts": "npm run test --workspace=contracts",
+    "test:backend": "npm run test --workspace=apps/backend",
+    "test:e2e": "npm run test:e2e --workspace=apps/dashboard",
+    "build": "npm run build --workspaces",
+    "deploy:contracts": "npm run deploy --workspace=contracts",
+    "setup": "npm install && npm run compile --workspace=contracts && npm run compile:circuit --workspace=circuit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+} 
