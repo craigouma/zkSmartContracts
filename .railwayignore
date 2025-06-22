@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Development files  
+apps/dashboard/
+circuit/
+contracts/
+
+# Documentation
+README.md
+deployment-guide.md
+cleanup-credentials.py
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env*
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing
+*.test.js
+*.spec.js
+
+# Cache
+.cache/
+.tmp/

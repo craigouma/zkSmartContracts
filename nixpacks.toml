@@ -1,0 +1,17 @@
+[providers]
+node = "18.x"
+
+[phases.setup]
+nixPkgs = ["nodejs", "npm"]
+
+[phases.install]
+cmds = [
+  "npm ci",
+  "npm run build --workspace=apps/backend"
+]
+
+[phases.build]
+cmds = ["echo 'Build completed'"]
+
+[start]
+cmd = "cd apps/backend && npm run start:prod" 
