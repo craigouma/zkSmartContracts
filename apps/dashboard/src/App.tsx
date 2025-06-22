@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { StreamsPage } from './pages/StreamsPage';
 import { CreateStreamPage } from './pages/CreateStreamPage';
 import { CashoutPage } from './pages/CashoutPage';
+import { TransactionHistoryPage } from './pages/TransactionHistoryPage';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/streams" element={<StreamsPage />} />
           <Route path="/create" element={<CreateStreamPage />} />
           <Route path="/cashout/:streamId" element={<CashoutPage />} />
+          <Route path="/history" element={<TransactionHistoryPage />} />
         </Routes>
       </Layout>
     </div>

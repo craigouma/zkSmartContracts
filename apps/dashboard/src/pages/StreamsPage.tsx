@@ -22,6 +22,35 @@ export function StreamsPage() {
       .catch(err => console.error('Failed to load currencies:', err));
   }, []);
 
+  const getStreamStatus = (stream: Stream) => {
+    const totalAmount = parseFloat(stream.amount) / 1e18;
+    const withdrawnAmount = parseFloat(stream.withdrawn) / 1e18;
+    const isFullyWithdrawn = withdrawnAmount >= totalAmount;
+    
+    if (isFullyWithdrawn) {
+      return {
+        label: '✅ Fully Withdrawn',
+        bgColor: 'bg-blue-100',
+        textColor: 'text-blue-800',
+        status: 'fully-withdrawn'
+      };
+    } else if (stream.active) {
+      return {
+        label: '🟢 Active',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        status: 'active'
+      };
+    } else {
+      return {
+        label: '🔴 Inactive',
+        bgColor: 'bg-gray-100',
+        textColor: 'text-gray-800',
+        status: 'inactive'
+      };
+    }
+  };
+
   const handleTestPayout = async () => {
     try {
       const result = await kotaniApi.createPayout({
@@ -105,6 +134,15 @@ export function StreamsPage() {
               <span className="mr-2">➕</span>
               <span className="hidden sm:inline">Create Stream</span>
               <span className="sm:hidden">Create</span>
+            </Link>
+            
+            <Link
+              to="/history"
+              className="inline-flex items-center justify-center px-4 py-2 sm:py-3 border border-amber-300 rounded-xl shadow-sm text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              <span className="mr-2">📊</span>
+              <span className="hidden sm:inline">Transaction History</span>
+              <span className="sm:hidden">History</span>
             </Link>
           </div>
         </div>
@@ -209,12 +247,8 @@ export function StreamsPage() {
                         <h3 className="text-lg font-semibold text-white">
                           Stream #{stream.streamId}
                         </h3>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          stream.active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {stream.active ? '🟢 Active' : '🔴 Inactive'}
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStreamStatus(stream).bgColor} ${getStreamStatus(stream).textColor}`}>
+                          {getStreamStatus(stream).label}
                         </span>
                       </div>
                     </div>
@@ -252,7 +286,7 @@ export function StreamsPage() {
                   <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => handleWithdraw(stream.streamId)}
-                      disabled={!stream.active}
+                      disabled={getStreamStatus(stream).status === 'fully-withdrawn'}
                       className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                     >
                       <span className="mr-2">💸</span>

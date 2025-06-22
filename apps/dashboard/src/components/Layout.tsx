@@ -16,6 +16,7 @@ export function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: 'Streams', href: '/streams', icon: '💰' },
     { name: 'Create Stream', href: '/create', icon: '➕' },
+    { name: 'Transaction History', href: '/history', icon: '📊' },
   ];
 
   return (
