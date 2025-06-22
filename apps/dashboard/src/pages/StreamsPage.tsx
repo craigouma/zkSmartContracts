@@ -53,176 +53,223 @@ export function StreamsPage() {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-          <span className="ml-2 text-gray-600">Loading streams...</span>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <span className="ml-4 text-lg text-gray-600">Loading streams...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-xl font-semibold text-gray-900">Salary Streams</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage your privacy-preserving salary streams with ZK proofs.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-2">
-          <button
-            onClick={() => refetch()}
-            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            title="Refresh streams list"
-          >
-            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refresh
-          </button>
-          <button
-            onClick={handleTestPayout}
-            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            Test Mock Payout
-          </button>
-          <Link
-            to="/create"
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-          >
-            Create Stream
-          </Link>
+    <div className="space-y-6">
+      {/* Header Section - Mobile Responsive */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+              <span className="mr-3">💰</span>
+              Salary Streams
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-gray-600">
+              Manage your privacy-preserving salary streams with ZK proofs.
+            </p>
+          </div>
+          
+          {/* Mobile-Responsive Action Buttons */}
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+            <button
+              onClick={() => refetch()}
+              className="inline-flex items-center justify-center px-4 py-2 sm:py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+              title="Refresh streams list"
+            >
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">Refresh</span>
+            </button>
+            
+            <button
+              onClick={handleTestPayout}
+              className="inline-flex items-center justify-center px-4 py-2 sm:py-3 border border-purple-300 rounded-xl shadow-sm text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              <span className="mr-2">🧪</span>
+              <span className="hidden sm:inline">Test Mock Payout</span>
+              <span className="sm:hidden">Test Payout</span>
+            </button>
+            
+            <Link
+              to="/create"
+              className="inline-flex items-center justify-center px-4 py-2 sm:py-3 border border-transparent bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg text-sm font-medium text-white hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105"
+            >
+              <span className="mr-2">➕</span>
+              <span className="hidden sm:inline">Create Stream</span>
+              <span className="sm:hidden">Create</span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* API Status Indicators */}
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h3 className="text-sm font-medium text-green-800">Backend Status</h3>
-          <p className="text-xs text-green-600">✅ Connected to http://localhost:4000</p>
+      {/* API Status Indicators - Mobile Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 sm:p-6 rounded-2xl border-2 border-green-200 shadow-sm">
+          <h3 className="text-sm font-semibold text-green-800 flex items-center">
+            <span className="mr-2">🔗</span>Backend Status
+          </h3>
+          <p className="text-xs sm:text-sm text-green-600 mt-1 break-all">
+            ✅ Connected to Railway
+          </p>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h3 className="text-sm font-medium text-blue-800">Supported Currencies</h3>
-          <p className="text-xs text-blue-600">
+        
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 sm:p-6 rounded-2xl border-2 border-blue-200 shadow-sm">
+          <h3 className="text-sm font-semibold text-blue-800 flex items-center">
+            <span className="mr-2">💱</span>Supported Currencies
+          </h3>
+          <p className="text-xs sm:text-sm text-blue-600 mt-1">
             {currencies.length > 0 ? currencies.join(', ') : 'Loading...'}
           </p>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <h3 className="text-sm font-medium text-purple-800">MockKotani Status</h3>
-          <p className="text-xs text-purple-600">✅ Mock payments ready</p>
+        
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 sm:p-6 rounded-2xl border-2 border-purple-200 shadow-sm sm:col-span-2 lg:col-span-1">
+          <h3 className="text-sm font-semibold text-purple-800 flex items-center">
+            <span className="mr-2">🧪</span>MockKotani Status
+          </h3>
+          <p className="text-xs sm:text-sm text-purple-600 mt-1">
+            ✅ Mock payments ready
+          </p>
         </div>
       </div>
       
+      {/* Error State - Mobile Friendly */}
       {error && (
-        <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
+        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-start">
+            <div className="flex-shrink-0 mb-3 sm:mb-0 sm:mr-3">
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-600 text-lg">❌</span>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-red-800">
                 Unable to load streams
               </h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>Error: {error.message || 'Unknown error occurred'}</p>
-                <p className="mt-1">Make sure the backend is running on http://localhost:4000</p>
+              <div className="mt-2 text-sm text-red-700 space-y-1">
+                <p className="break-words">Error: {error.message || 'Unknown error occurred'}</p>
+                <p>Make sure the backend is running properly</p>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Empty State - Mobile Friendly */}
       {streams && streams.length === 0 && !error && (
-        <div className="mt-8 bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="px-4 py-8 sm:p-12">
             <div className="text-center">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No streams</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Get started by creating a new salary stream.
-              </p>
-              <div className="mt-6">
-                <Link
-                  to="/create"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Create your first stream
-                </Link>
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl sm:text-3xl">📄</span>
               </div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No streams yet</h3>
+              <p className="text-sm sm:text-base text-gray-500 mb-6 max-w-md mx-auto">
+                Get started by creating your first salary stream with zero-knowledge privacy.
+              </p>
+              <Link
+                to="/create"
+                className="inline-flex items-center px-6 py-3 border border-transparent shadow-lg text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition-all duration-200 hover:scale-105"
+              >
+                <span className="mr-2">🚀</span>
+                Create your first stream
+              </Link>
             </div>
           </div>
         </div>
       )}
 
+      {/* Streams List - Mobile Responsive Cards */}
       {streams && streams.length > 0 && (
-        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+              Active Streams ({streams.length})
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {streams.map((stream) => (
-              <li key={stream.streamId}>
-                <div className="px-4 py-4 sm:px-6">
+              <div key={stream.streamId} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-200">
+                {/* Card Header */}
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 sm:px-6 py-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                          </svg>
-                        </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <span className="text-white text-lg">💰</span>
                       </div>
-                      <div className="ml-4">
-                        <div className="flex items-center">
-                          <p className="text-sm font-medium text-indigo-600 truncate">
-                            Stream #{stream.streamId}
-                          </p>
-                          <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            stream.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {stream.active ? 'active' : 'inactive'}
-                          </span>
-                        </div>
-                        <div className="mt-2 sm:flex sm:justify-between">
-                          <div className="sm:flex">
-                            <p className="flex items-center text-sm text-gray-500">
-                              Recipient: {stream.employee}
-                            </p>
-                          </div>
-                          <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                            <p>
-                              Amount: {(parseFloat(stream.amount) / 1e18).toFixed(4)} ETH
-                            </p>
-                          </div>
-                        </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          Stream #{stream.streamId}
+                        </h3>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          stream.active 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {stream.active ? '🟢 Active' : '🔴 Inactive'}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleWithdraw(stream.streamId)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Withdraw
-                      </button>
-                      <Link
-                        to={`/cashout/${stream.streamId}`}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                      >
-                        Cashout
-                      </Link>
                     </div>
                   </div>
                 </div>
-              </li>
+
+                {/* Card Body */}
+                <div className="p-4 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-500">Recipient:</span>
+                      <p className="text-gray-900 break-all font-mono text-xs mt-1">
+                        {stream.employee}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-500">Total Amount:</span>
+                      <p className="text-gray-900 font-semibold mt-1">
+                        {(parseFloat(stream.amount) / 1e18).toFixed(4)} ETH
+                      </p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-500">Duration:</span>
+                      <p className="text-gray-900 mt-1">{stream.duration} seconds</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-500">Withdrawn:</span>
+                      <p className="text-gray-900 font-semibold mt-1">
+                        {(parseFloat(stream.withdrawn) / 1e18).toFixed(6)} ETH
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons - Mobile Responsive */}
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => handleWithdraw(stream.streamId)}
+                      disabled={!stream.active}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      <span className="mr-2">💸</span>
+                      Withdraw
+                    </button>
+                    <Link
+                      to={`/cashout/${stream.streamId}`}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 border-2 border-indigo-300 text-sm font-medium rounded-xl text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                    >
+                      <span className="mr-2">🏦</span>
+                      Cashout
+                    </Link>
+                  </div>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
