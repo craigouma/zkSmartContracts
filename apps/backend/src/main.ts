@@ -8,8 +8,16 @@ async function bootstrap() {
     
     // Enable CORS for frontend
     app.enableCors({
-      origin: ['http://localhost:3000', 'http://localhost:5173', 'https://your-app.vercel.app'],
+      origin: [
+        'http://localhost:3000', 
+        'http://localhost:5173', 
+        'https://zksmartcontracts-dashboard.vercel.app',
+        'https://zksmartcontracts-dashboard-mhrn0aghd.vercel.app',
+        /^https:\/\/zksmartcontracts-dashboard.*\.vercel\.app$/
+      ],
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     });
     
     // Global validation pipe
