@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Stream, StreamDocument } from './schemas/stream.schema';
@@ -23,7 +23,7 @@ export class StreamsService {
 
   constructor(
     @InjectModel(Stream.name) private streamModel: Model<StreamDocument>,
-    @InjectQueue('payouts') private payoutQueue: Queue,
+    @Optional() @InjectQueue('payouts') private payoutQueue?: Queue,
   ) {
     this.initializeEthers();
   }
@@ -75,9 +75,11 @@ export class StreamsService {
 
       await stream.save();
 
-      // Schedule automatic payouts if MSISDN is provided
-      if (createStreamDto.msisdn) {
+      // Schedule automatic payouts if MSISDN is provided and Redis is available
+      if (createStreamDto.msisdn && this.payoutQueue) {
         await this.scheduleAutomaticPayouts(stream);
+      } else if (createStreamDto.msisdn && !this.payoutQueue) {
+        this.logger.warn('MSISDN provided but Redis queue not available. Automatic payouts disabled.');
       }
 
       this.logger.log(`Stream created with ID: ${streamId}`);
@@ -140,6 +142,14 @@ export class StreamsService {
       throw new Error('Insufficient available amount');
     }
 
+    if (!this.payoutQueue) {
+      this.logger.warn('Redis queue not available. Processing payout immediately...');
+      // Simulate immediate payout when Redis is not available
+      const payoutReference = `immediate-${Date.now()}`;
+      await this.updateStreamPayout(streamId, payoutReference, amount);
+      return { payoutReference, status: 'completed', amount };
+    }
+
     // Add payout job to queue
     const job = await this.payoutQueue.add('processPayout', {
       streamId,
@@ -172,6 +182,11 @@ export class StreamsService {
   }
 
   private async scheduleAutomaticPayouts(stream: Stream) {
+    if (!this.payoutQueue) {
+      this.logger.warn('Cannot schedule automatic payouts: Redis queue not available');
+      return;
+    }
+
     // Schedule daily payouts for the stream duration
     const dailyPayouts = Math.ceil(stream.duration / (24 * 60 * 60)); // Daily for stream duration
     

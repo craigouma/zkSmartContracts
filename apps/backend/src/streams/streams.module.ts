@@ -8,15 +8,32 @@ import { Stream, StreamSchema } from './schemas/stream.schema';
 import { PayoutProcessor } from './processors/payout.processor';
 import { MockKotaniModule } from '../mock-kotani/mock-kotani.module';
 
+// Helper function to determine if Redis should be enabled
+function shouldEnableRedis(): boolean {
+  return !!(
+    process.env.REDIS_HOST || 
+    process.env.REDIS_URL || 
+    process.env.NODE_ENV === 'development'
+  );
+}
+
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Stream.name, schema: StreamSchema }]),
-    BullModule.registerQueue({
-      name: 'payouts',
-    }),
+    // Conditionally register BullModule queue only if Redis is available
+    ...(shouldEnableRedis() ? [
+      BullModule.registerQueue({
+        name: 'payouts',
+      })
+    ] : []),
     MockKotaniModule,
   ],
-  providers: [StreamsService, /* StreamsResolver, */ PayoutProcessor],
+  providers: [
+    StreamsService, 
+    /* StreamsResolver, */ 
+    // Only provide PayoutProcessor if Redis is available
+    ...(shouldEnableRedis() ? [PayoutProcessor] : [])
+  ],
   controllers: [StreamsController],
   exports: [StreamsService],
 })
