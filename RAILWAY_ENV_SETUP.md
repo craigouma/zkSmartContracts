@@ -1,5 +1,135 @@
 # 🚄 Railway Environment Setup
 
+## 🚨 CRITICAL: MongoDB Connection Issue
+
+**Your Railway deployment is failing because it's not picking up the MongoDB Atlas URI.**
+
+The error `connect ECONNREFUSED ::1:27017` means it's trying to connect to localhost instead of Atlas.
+
+## 🔧 IMMEDIATE FIX REQUIRED
+
+### 1. Set Environment Variables in Railway Dashboard
+
+**Go to your Railway project → Variables tab and add EXACTLY these:**
+
+```bash
+NODE_ENV=production
+PORT=3000
+MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+REDIS_URL=redis://default:VVZFjOnafhfIzblGCNTYlKrISoMyQpMz@redis.railway.internal:6379
+```
+
+### 2. Alternative Database Variable Names
+
+If `MONGODB_URI` doesn't work, Railway might expect different names. Try adding ALL of these:
+
+```bash
+MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+MONGO_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+DATABASE_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+```
+
+### 3. Validate Environment Variables
+
+Run this locally to test your environment:
+
+```bash
+node validate-env.js
+```
+
+Expected output:
+```
+🔍 Environment Variables Validation
+
+📋 Required Variables:
+  ✅ NODE_ENV: production
+  ✅ PORT: 3000
+
+🗄️  Database Variables (need at least one):
+  ✅ MONGODB_URI: Atlas URI
+  
+🔄 Redis Variables (optional):
+  ✅ REDIS_URL: SET
+
+📊 Summary:
+  Environment: production
+  Database: Configured
+  Redis: Enabled
+
+🎉 All required environment variables are set!
+```
+
+## 🔍 Troubleshooting Steps
+
+### Step 1: Check Railway Logs
+1. Go to Railway Dashboard
+2. Click on your service
+3. Go to "Deployments" tab
+4. Click on latest deployment
+5. Check logs for this line:
+   ```
+   🔍 MongoDB URI source: { MONGODB_URI: true, usingUri: 'Atlas', NODE_ENV: 'production' }
+   ```
+
+### Step 2: If Still Getting `::1:27017` Error
+This means Railway is NOT reading your environment variables. Try:
+
+1. **Delete and recreate** the `MONGODB_URI` variable
+2. **Copy-paste exactly** without extra spaces
+3. **Save and redeploy**
+
+### Step 3: Check MongoDB Atlas
+Ensure your MongoDB Atlas allows Railway connections:
+1. Go to MongoDB Atlas Dashboard
+2. Network Access → IP Access List
+3. Should have `0.0.0.0/0` (Allow access from anywhere)
+
+## 📋 Complete Railway Variables List
+
+```bash
+# Core Application
+NODE_ENV=production
+PORT=3000
+
+# Database (try all three)
+MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+MONGO_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+DATABASE_URL=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
+
+# Redis
+REDIS_URL=redis://default:VVZFjOnafhfIzblGCNTYlKrISoMyQpMz@redis.railway.internal:6379
+REDIS_HOST=redis.railway.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=VVZFjOnafhfIzblGCNTYlKrISoMyQpMz
+REDISUSER=default
+```
+
+## 🎯 What Should Happen
+
+After setting variables correctly:
+
+1. **Railway redeploys automatically**
+2. **Logs show**: `🔍 MongoDB URI source: { MONGODB_URI: true, usingUri: 'Atlas' }`
+3. **Health check works**: `https://your-app.railway.app/health`
+4. **Response shows**:
+   ```json
+   {
+     "status": "ok",
+     "mongodbConnected": true,
+     "redisEnabled": true
+   }
+   ```
+
+## 🆘 Still Not Working?
+
+If you're still getting the `::1:27017` error:
+
+1. **Share Railway deployment logs** with me
+2. **Screenshot** of your Railway environment variables
+3. **Test** the validation script: `node validate-env.js`
+
+The issue is 100% that Railway is not reading your `MONGODB_URI` environment variable correctly.
+
 ## Required Environment Variables for Production
 
 Copy and paste these environment variables into your Railway project dashboard:
@@ -8,11 +138,6 @@ Copy and paste these environment variables into your Railway project dashboard:
 ```bash
 NODE_ENV=production
 PORT=3000
-```
-
-### MongoDB Atlas (Keep your existing URI)
-```bash
-MONGODB_URI=mongodb+srv://craigcarlos95:z0JGFZzGFWhHsqbR@zksalary.ghk4dmi.mongodb.net/zksalarystream?retryWrites=true&w=majority&appName=zksalary
 ```
 
 ### Redis Configuration (From Your Railway Redis Service)

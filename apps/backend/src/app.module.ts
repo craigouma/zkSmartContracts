@@ -8,20 +8,48 @@ import { StreamsModule } from './streams/streams.module';
 import { ZkModule } from './zk/zk.module';
 import { MockKotaniModule } from './mock-kotani/mock-kotani.module';
 
+// Helper function to determine if Redis should be enabled
+function shouldEnableRedis(): boolean {
+  // Enable Redis if explicitly configured or in development mode
+  return !!(
+    process.env.REDIS_HOST || 
+    process.env.REDIS_URL || 
+    process.env.NODE_ENV === 'development'
+  );
+}
+
+// Helper function to get MongoDB URI
+function getMongoDbUri(): string {
+  // Try multiple environment variable names that Railway might use
+  const mongoUri = process.env.MONGODB_URI || 
+                   process.env.MONGO_URL || 
+                   process.env.DATABASE_URL ||
+                   'mongodb://localhost:27017/zksalarystream';
+  
+  console.log('🔍 MongoDB URI source:', {
+    MONGODB_URI: !!process.env.MONGODB_URI,
+    MONGO_URL: !!process.env.MONGO_URL,
+    DATABASE_URL: !!process.env.DATABASE_URL,
+    usingUri: mongoUri.includes('mongodb+srv') ? 'Atlas' : 'Local',
+    NODE_ENV: process.env.NODE_ENV
+  });
+  
+  return mongoUri;
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env.production', '.env'],
+      expandVariables: true,
     }),
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI ||
-        'mongodb://localhost:27017/zksalarystream',
-      {
-        retryAttempts: 5,
-        retryDelay: 1000,
-      }
-    ),
+    MongooseModule.forRoot(getMongoDbUri(), {
+      retryAttempts: 5,
+      retryDelay: 1000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    }),
     // GraphQLModule.forRoot<ApolloDriverConfig>({
     //   driver: ApolloDriver,
     //   autoSchemaFile: true,
@@ -46,14 +74,4 @@ import { MockKotaniModule } from './mock-kotani/mock-kotani.module';
     MockKotaniModule,
   ],
 })
-export class AppModule {}
-
-// Helper function to determine if Redis should be enabled
-function shouldEnableRedis(): boolean {
-  // Enable Redis if explicitly configured or in development mode
-  return !!(
-    process.env.REDIS_HOST || 
-    process.env.REDIS_URL || 
-    process.env.NODE_ENV === 'development'
-  );
-} 
+export class AppModule {} 
